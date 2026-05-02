@@ -90,8 +90,6 @@ def grep_file(fh: TextIO, cutoff: datetime, prepend: bool = False):
                     print(dt.strftime('%Y/%m/%d %H:%M:%S'), line)
                 else:
                     print(line)
-            else:
-                vprint(f"Skip line because {dt} < {cutoff}")
         except ValueError:
             vprint(f'# Cannot parse line {idx}: {line}')
 
