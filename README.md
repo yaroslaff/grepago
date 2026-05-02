@@ -12,3 +12,8 @@ grepago 2d ~/tmp/log/mail/mail.log /var/log/mail/mail.log.1
 ~~~
 
 will print records from both files for past 2 days from current moment.
+
+### Installation
+~~~
+pipx install git+https://github.com/yaroslaff/grepago.git
+~~~
