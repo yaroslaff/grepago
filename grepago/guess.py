@@ -1,6 +1,7 @@
 from .logformat import LogFormat
 from .isoformat import ISOFormat
 from .clfformat import CLFFormat
+from .vprint import vprint
 
 from datetime import datetime
 
@@ -15,6 +16,6 @@ def guess_format(line) -> tuple[LogFormat, datetime]:
         except ValueError as e:
             pass
         else:
-            print(f"fmt: {fmt}, dt: {dt}")
+            vprint(f"# fmt: {fmt}, dt: {dt}")
             return fmt, dt
         
