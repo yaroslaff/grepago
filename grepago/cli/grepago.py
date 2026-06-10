@@ -40,6 +40,7 @@ def parse_duration(s: str) -> timedelta:
 def get_args() -> Namespace:
     parser = ArgumentParser('grepago - grep log files by date in any format')
     parser.add_argument('-v', '--verbose', default=False, action='store_true', help='verbose mode')
+    parser.add_argument('-s', '--sorted', default=False, action='store_true', help='assume input is sorted by date (to speed-up). Print all lines after first match')
     parser.add_argument('-p', '--prepend', default=False, action='store_true', help='prepend each output line with human-readable time e.g. 2026/04/28 13:37:34')
     parser.add_argument('duration', type=str, help='Duration (how much time ago from now, e.g. 1h or 1h30m or 3d)')
     parser.add_argument('FILES', nargs='*')
@@ -68,11 +69,11 @@ def main():
 
             vprint(f'# process file {fname} ({filesize} bytes)')
             with open(fname) as fh:
-                grep_file(fh=fh, cutoff=cutoff, prepend=args.prepend)
+                grep_file(fh=fh, cutoff=cutoff, prepend=args.prepend, sorted=args.sorted)
     else:
-        grep_file(sys.stdin, cutoff=cutoff, prepend=args.prepend)
+        grep_file(sys.stdin, cutoff=cutoff, prepend=args.prepend, sorted=args.sorted)
 
-def grep_file(fh: TextIO, cutoff: datetime, prepend: bool = False):
+def grep_file(fh: TextIO, cutoff: datetime, prepend: bool = False, sorted: bool = False):
     l1 = fh.readline()
     
     # print(l1)
@@ -80,18 +81,33 @@ def grep_file(fh: TextIO, cutoff: datetime, prepend: bool = False):
     vprint(f'# detected format {fcls}')
     fh.seek(0)
 
+    printed = False
+
     for idx,line in enumerate(fh):
         line = line.rstrip()
         try:
-            dt = fcls.get_datetime(line)
-            if dt >= cutoff:
+            # match or not?
+            older = False
+            if printed and sorted:
+                older = True
+            
+            if not older:
+                dt = fcls.get_datetime(line)
+                if dt >= cutoff:
+                    older = True
+            
+            if older:
                 # print it!
+                printed = True
                 if prepend:
                     print(dt.strftime('%Y/%m/%d %H:%M:%S'), line)
                 else:
                     print(line)
         except ValueError:
             vprint(f'# Cannot parse line {idx}: {line}')
+        except BrokenPipeError:
+            vprint(f'# Broken pipe, exiting')
+            break
 
 
 if __name__ == '__main__':
