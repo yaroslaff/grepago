@@ -93,6 +93,10 @@ def grep_file(fh: TextIO, cutoff: datetime, prepend: bool = False, sorted: bool 
             
             if not older:
                 dt = fcls.get_datetime(line)
+
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=mytz())
+
                 if dt >= cutoff:
                     older = True
             
